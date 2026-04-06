@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /c/Users/108cr/dreamscribe/src/components)",
+      "Bash(mkdir -p /c/Users/108cr/dreamscribe/src/lib)",
+      "Bash(mkdir -p /c/Users/108cr/dreamscribe/src/app/login)",
+      "Bash(mkdir -p /c/Users/108cr/dreamscribe/src/app/signup)",
+      "Bash(mkdir -p /c/Users/108cr/dreamscribe/src/app/journal)",
+      "Bash(npx next:*)",
+      "Bash(curl -s -m 180 -X POST https://dharmadhillion--dreamscribe-backend-fastapi-app.modal.run/ember/run-personal/c033bdc3-0c00-4cad-8913-9cb7743ee0b3)",
+      "Bash(gh auth:*)",
+      "Bash(vercel --version)"
+    ]
+  }
+}
