@@ -217,8 +217,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* GAP / SPACER — push the second scroll a full screen below so user must scroll to reach it */}
-      <div className="h-[90vh] w-full" />
+      {/* GAP / SPACER — half-screen of room before the second scroll */}
+      <div className="h-[45vh] w-full" />
 
       {/* Trigger anchor — observer fires when user scrolls down to here */}
       <div ref={howItWorksRef} className="w-full" style={{ height: 1 }} />
