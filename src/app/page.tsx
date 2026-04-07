@@ -47,6 +47,8 @@ export default function HomePage() {
 
   // IntersectionObserver refs for each scroll
   const [heroRef, heroInView] = useInView<HTMLDivElement>("0px 0px -50px 0px");
+  // The trigger anchor is a 1px element below the gap.
+  // Use rootMargin to require it to be at least 100px above the bottom edge of viewport.
   const [howItWorksRef, howItWorksInView] = useInView<HTMLDivElement>(
     "0px 0px -100px 0px"
   );
@@ -215,13 +217,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* GAP — let the candle and embers breathe */}
-      <div className="h-[40vh] w-full" />
+      {/* GAP / SPACER — push the second scroll a full screen below so user must scroll to reach it */}
+      <div className="h-[90vh] w-full" />
+
+      {/* Trigger anchor — observer fires when user scrolls down to here */}
+      <div ref={howItWorksRef} className="w-full" style={{ height: 1 }} />
 
       {/* SCROLL 2 — HOW IT WORKS */}
       <section className="w-full mx-auto relative z-[10]">
         <div
-          ref={howItWorksRef}
           className={`scroll-unroll ${howItWorksInView ? "in-view" : ""}`}
         >
           <ScrollContainer>
