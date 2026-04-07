@@ -12,6 +12,13 @@ export const metadata: Metadata = {
     "A voice-first neural journal that reads your dreams and your days by candlelight. Powered by TRIBE v2 and Claude AI.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#0a0705",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +38,7 @@ export default function RootLayout({
         <Embers />
         <Candle />
         <Nav />
-        <main className="relative z-10 min-h-screen flex flex-col items-center pb-[250px] px-4">
+        <main className="relative z-10 min-h-screen flex flex-col items-center pb-[180px] sm:pb-[250px] px-2 sm:px-4">
           {children}
         </main>
         <footer className="relative z-10 text-center py-12">

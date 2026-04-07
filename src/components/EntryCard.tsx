@@ -157,8 +157,8 @@ export default function EntryCard({
             {barsTitle}
           </div>
           {bars.map((bar, i) => (
-            <div key={i} className="flex items-center gap-3 mb-2.5">
-              <span className="font-fell italic text-[0.8rem] text-ink-sepia w-[180px] shrink-0">
+            <div key={i} className="flex items-center gap-2 sm:gap-3 mb-2.5">
+              <span className="font-fell italic text-[0.7rem] sm:text-[0.8rem] text-ink-sepia w-[110px] sm:w-[180px] shrink-0">
                 {bar.emoji} {bar.label}
               </span>
               <div className="flex-1 h-[5px] bg-[rgba(44,24,16,0.18)] rounded-sm overflow-hidden">
@@ -217,7 +217,7 @@ export default function EntryCard({
                     style={{ cursor: "none", background: "transparent", border: "none" }}
                   >
                     {/* Ember dot + name */}
-                    <div className="w-[170px] shrink-0">
+                    <div className="w-[120px] sm:w-[170px] shrink-0">
                       <div className="flex items-center gap-2">
                         <span
                           className="w-[7px] h-[7px] rounded-full shrink-0"
@@ -228,7 +228,7 @@ export default function EntryCard({
                               : `0 0 6px ${color}`,
                           }}
                         />
-                        <span className="font-cormorant italic text-[0.95rem] text-ink-sepia group-hover:text-amber transition-colors">
+                        <span className="font-cormorant italic text-[0.8rem] sm:text-[0.95rem] text-ink-sepia group-hover:text-amber transition-colors">
                           {region.name}
                         </span>
                       </div>
