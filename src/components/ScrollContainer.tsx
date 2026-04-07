@@ -8,7 +8,7 @@ export default function ScrollContainer({
   className = "",
 }: ScrollContainerProps) {
   return (
-    <div className={`relative w-[min(720px,98vw)] mx-auto ${className}`}>
+    <div className={`relative w-[min(900px,98vw)] mx-auto ${className}`}>
       <div className="scroll-rod" />
       <div className="scroll-body">
         <div className="parchment-light" />

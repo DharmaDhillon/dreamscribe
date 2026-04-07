@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import StarButton from "@/components/StarButton";
-import Comments from "@/components/Comments";
 import type { Database } from "@/lib/supabase";
 
 type Entry = Database["public"]["Tables"]["entries"]["Row"];
@@ -49,7 +48,6 @@ export default function FeedPage() {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -77,7 +75,7 @@ export default function FeedPage() {
         }
         query = query.eq("user_id", user.id);
       } else {
-        query = query.eq("is_public", true);
+        query = query.eq("is_public", true).not("transcript", "is", null).neq("transcript", "");
         if (filter === "dream") query = query.eq("entry_type", "dream");
         if (filter === "daily") query = query.eq("entry_type", "daily");
         if (filter === "starred") {
@@ -114,22 +112,6 @@ export default function FeedPage() {
     load();
   }, [router, filter]);
 
-  const toggleEntryPublic = async (
-    entryId: string,
-    currentPublic: boolean
-  ) => {
-    const supabase = createClient();
-    await supabase
-      .from("entries")
-      .update({ is_public: !currentPublic })
-      .eq("id", entryId);
-    setEntries((prev) =>
-      prev.map((e) =>
-        e.id === entryId ? { ...e, is_public: !currentPublic } : e
-      )
-    );
-  };
-
   const filters: { key: FilterType; label: string }[] = [
     { key: "all", label: "All" },
     { key: "dream", label: "🌙 Dreams" },
@@ -158,6 +140,51 @@ export default function FeedPage() {
           Where dreamers gather to share what the fire revealed
         </p>
       </div>
+
+      {/* Signup prompt banner for non-logged-in users */}
+      {!userId && !loading && (
+        <div
+          className="w-[min(700px,98vw)] mx-auto mb-8 px-6 py-5 text-center"
+          style={{
+            background: "rgba(15,9,4,0.85)",
+            border: "1px solid rgba(201,124,42,0.4)",
+            borderLeft: "4px solid rgba(201,124,42,0.7)",
+            backdropFilter: "blur(8px)",
+            opacity: 0,
+            animation: "ember-in 1.5s ease forwards 0.5s",
+          }}
+        >
+          <p className="font-cormorant italic text-base text-candle-white mb-3">
+            ✦ Welcome, traveler. Step closer to the bonfire.
+          </p>
+          <p className="font-cormorant italic text-sm text-parchment opacity-80 mb-4 max-w-md mx-auto">
+            DreamScribe reads your dreams and your days through brain activation
+            and AI insight. Join the circle to record your own scribes, follow
+            dreamers, and see what the flame hears in your voice.
+          </p>
+          <Link
+            href="/signup"
+            className="no-underline inline-block font-pinyon text-lg px-8 py-3 text-[rgba(255,220,180,0.95)] transition-all duration-300 hover:scale-105"
+            style={{
+              background: "radial-gradient(circle at 35% 35%, #c0302a, #8b1a1a, #5a0f0f)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,100,80,0.2), 0 0 20px rgba(139,26,26,0.3)",
+              textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+              cursor: "none",
+            }}
+          >
+            Begin Your First Scroll
+          </Link>
+          <div className="mt-3">
+            <Link
+              href="/login"
+              className="font-fell italic text-[0.7rem] text-parchment-dark hover:text-amber opacity-70 hover:opacity-100 tracking-[0.1em] transition-colors no-underline"
+              style={{ cursor: "none" }}
+            >
+              Already have a scroll? Login &rarr;
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div
@@ -223,220 +250,121 @@ export default function FeedPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {entries.map((entry) => {
               const emoji =
                 ARCHETYPE_EMOJI[entry.users?.avatar_archetype || ""] || "🔍";
-              const isOwn = userId && entry.user_id === userId;
-              const isExpanded = expandedId === entry.id;
+              const profileHref = userId
+                ? `/profile/${entry.users?.username || ""}#entry-${entry.id}`
+                : "/signup";
+              const preview = entry.transcript
+                ? entry.transcript.substring(0, 140) +
+                  (entry.transcript.length > 140 ? "..." : "")
+                : `Audio entry · ${entry.duration_seconds || 0}s`;
 
               return (
-                <div
+                <Link
                   key={entry.id}
-                  className="relative transition-all duration-300"
-                  style={{
-                    background: "rgba(30,18,8,0.4)",
-                    border: "1px solid rgba(139,100,40,0.12)",
-                    backdropFilter: "blur(4px)",
-                  }}
+                  href={profileHref}
+                  className="block no-underline group"
+                  style={{ cursor: "none" }}
                 >
-                  {/* Header row — avatar + name + time */}
-                  <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-                    <Link
-                      href={`/profile/${entry.users?.username || ""}`}
-                      className="no-underline shrink-0"
-                      style={{ cursor: "none" }}
-                    >
-                      <span
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-lg overflow-hidden"
-                        style={{
-                          background: entry.users?.avatar_url
-                            ? "transparent"
-                            : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.25), rgba(61,32,16,0.5))",
-                          border: "1px solid rgba(201,124,42,0.25)",
-                        }}
-                      >
-                        {entry.users?.avatar_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={entry.users.avatar_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          emoji
-                        )}
-                      </span>
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/profile/${entry.users?.username || ""}`}
-                        className="no-underline group"
-                        style={{ cursor: "none" }}
-                      >
-                        <span className="font-cormorant italic text-sm text-parchment opacity-80 group-hover:text-amber-pale transition-colors">
-                          {entry.users?.display_name ||
-                            entry.users?.username ||
-                            "Anonymous"}
+                  <div className="entry-scroll relative cursor-none transition-all duration-300 group-hover:brightness-110">
+                    <div className="entry-scroll-rod" />
+                    <div className="entry-scroll-body">
+                      <div className="flex gap-4 relative z-[2]">
+                        {/* Avatar */}
+                        <span
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden shrink-0"
+                          style={{
+                            background: entry.users?.avatar_url
+                              ? "transparent"
+                              : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.5), rgba(61,32,16,0.7))",
+                            border: "2px solid rgba(139,100,40,0.5)",
+                          }}
+                        >
+                          {entry.users?.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={entry.users.avatar_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            emoji
+                          )}
                         </span>
-                        <span className="font-fell italic text-[0.55rem] text-parchment-dark opacity-30 ml-2">
-                          @{entry.users?.username}
-                        </span>
-                      </Link>
-                      <div className="flex items-center gap-2">
-                        <span className="font-fell italic text-[0.55rem] text-parchment-dark opacity-25">
-                          {entry.entry_type === "dream"
-                            ? "🌙 dream"
-                            : "☀️ daily"}{" "}
-                          · {timeAgo(entry.created_at)}
-                        </span>
-                        {entry.mood_label && (
-                          <span className="font-fell italic text-[0.5rem] text-amber opacity-40">
-                            {entry.mood_label}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {/* Privacy toggle for own entries */}
-                    {isOwn && (
-                      <button
-                        onClick={() =>
-                          toggleEntryPublic(entry.id, entry.is_public)
-                        }
-                        className="font-fell italic text-[0.55rem] tracking-[0.05em] px-2 py-1 transition-all duration-300 border shrink-0"
-                        style={{
-                          cursor: "none",
-                          background: entry.is_public
-                            ? "rgba(201,124,42,0.1)"
-                            : "rgba(44,24,16,0.15)",
-                          borderColor: entry.is_public
-                            ? "rgba(201,124,42,0.25)"
-                            : "rgba(139,100,40,0.15)",
-                          color: "rgba(212,188,138,0.6)",
-                        }}
-                      >
-                        {entry.is_public ? "🔓" : "🔒"}
-                      </button>
-                    )}
-                  </div>
 
-                  {/* Transcript */}
-                  <div className="px-5 pb-3">
-                    {entry.transcript ? (
-                      <p className="font-cormorant italic text-[0.95rem] leading-[1.7] text-parchment opacity-70">
-                        &ldquo;
-                        {isExpanded
-                          ? entry.transcript
-                          : entry.transcript.substring(0, 180) +
-                            (entry.transcript.length > 180 ? "..." : "")}
-                        &rdquo;
-                      </p>
-                    ) : (
-                      <p className="font-cormorant italic text-sm text-parchment-dark opacity-35">
-                        Audio entry · {entry.duration_seconds || 0}s
-                      </p>
-                    )}
-                  </div>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          {/* Header row */}
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className="font-cormorant italic text-base text-ink-sepia group-hover:text-amber transition-colors">
+                              {entry.users?.display_name ||
+                                entry.users?.username ||
+                                "Anonymous"}
+                            </span>
+                            <span className="font-fell italic text-[0.75rem] text-ink-sepia opacity-70">
+                              @{entry.users?.username}
+                            </span>
+                            <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50">
+                              ·
+                            </span>
+                            <span className="font-fell italic text-[0.75rem] text-ink-sepia opacity-80">
+                              {entry.entry_type === "dream"
+                                ? "🌙 dream"
+                                : "☀️ daily"}
+                            </span>
+                            <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50">
+                              ·
+                            </span>
+                            <span className="font-fell italic text-[0.75rem] text-ink-sepia opacity-70">
+                              {timeAgo(entry.created_at)}
+                            </span>
+                            {entry.mood_label && (
+                              <>
+                                <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50">
+                                  ·
+                                </span>
+                                <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-70">
+                                  {entry.mood_label}
+                                </span>
+                              </>
+                            )}
+                          </div>
 
-                  {/* Claude insight preview */}
-                  {entry.claude_insight && (
-                    <div
-                      className="mx-5 mb-3 px-3 py-2"
-                      style={{
-                        borderLeft: "2px solid rgba(201,124,42,0.2)",
-                        background: "rgba(201,124,42,0.04)",
-                      }}
-                    >
-                      <span className="font-fell text-[7px] tracking-[0.2em] text-amber opacity-40 uppercase block mb-1">
-                        ✦ what the flame heard
-                      </span>
-                      <p className="font-cormorant italic text-[0.8rem] leading-[1.6] text-parchment opacity-55">
-                        {isExpanded
-                          ? entry.claude_insight
-                          : entry.claude_insight.substring(0, 140) +
-                            (entry.claude_insight.length > 140 ? "..." : "")}
-                      </p>
-                    </div>
-                  )}
+                          {/* Preview text */}
+                          <p className="font-cormorant italic text-[1rem] leading-[1.7] text-ink-sepia mb-3">
+                            &ldquo;{preview}&rdquo;
+                          </p>
 
-                  {/* Brain scores mini bar (compact) */}
-                  {entry.amygdala_score !== null && (
-                    <div className="px-5 pb-2">
-                      <div className="flex gap-3 items-center">
-                        {[
-                          {
-                            label: "emotional",
-                            score: Number(entry.amygdala_score || 0),
-                          },
-                          {
-                            label: "reflective",
-                            score: Number(entry.dmn_score || 0),
-                          },
-                          {
-                            label: "conflict",
-                            score: Number(entry.acc_score || 0),
-                          },
-                          {
-                            label: "rational",
-                            score: Number(entry.dlpfc_score || 0),
-                          },
-                        ].map((b) => (
-                          <div key={b.label} className="flex-1">
-                            <div className="h-[2px] bg-[rgba(212,188,138,0.1)] rounded-sm overflow-hidden">
-                              <div
-                                className="h-full rounded-sm"
-                                style={{
-                                  width: `${b.score}%`,
-                                  background:
-                                    b.score >= 60
-                                      ? "rgba(232,80,58,0.5)"
-                                      : b.score >= 35
-                                      ? "rgba(201,124,42,0.5)"
-                                      : "rgba(107,158,107,0.5)",
-                                }}
+                          {/* Footer */}
+                          <div
+                            className="flex items-center gap-4 mt-2 pt-2 border-t border-[rgba(139,100,40,0.2)]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {userId ? (
+                              <StarButton
+                                entryId={entry.id}
+                                userId={userId}
+                                initialStarCount={entry.star_count}
+                                initialStarred={entry.user_starred}
                               />
-                            </div>
-                            <span className="font-fell italic text-[6px] text-parchment-dark opacity-25 tracking-[0.05em]">
-                              {b.label} {b.score}%
+                            ) : (
+                              <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-70">
+                                ★ {entry.star_count}
+                              </span>
+                            )}
+                            <span className="font-fell italic text-[0.7rem] text-amber opacity-80">
+                              {userId ? "tap to read full scroll →" : "sign up to read more →"}
                             </span>
                           </div>
-                        ))}
+                        </div>
                       </div>
                     </div>
-                  )}
-
-                  {/* Footer — star + comments + expand */}
-                  <div className="flex items-center justify-between px-5 py-3 border-t border-[rgba(139,100,40,0.08)]">
-                    <div className="flex items-center gap-4">
-                      {userId ? (
-                        <StarButton
-                          entryId={entry.id}
-                          userId={userId}
-                          initialStarCount={entry.star_count}
-                          initialStarred={entry.user_starred}
-                        />
-                      ) : (
-                        <span className="font-fell italic text-[0.6rem] text-parchment-dark opacity-35">
-                          ★ {entry.star_count}
-                        </span>
-                      )}
-                      <Comments
-                        entryId={entry.id}
-                        currentUserId={userId}
-                        entryOwnerId={entry.user_id}
-                      />
-                    </div>
-                    {(entry.transcript?.length || 0) > 180 && (
-                      <button
-                        onClick={() =>
-                          setExpandedId(isExpanded ? null : entry.id)
-                        }
-                        className="font-fell italic text-[0.6rem] text-parchment-dark opacity-35 hover:opacity-60 transition-opacity bg-transparent border-none tracking-[0.05em]"
-                        style={{ cursor: "none" }}
-                      >
-                        {isExpanded ? "show less" : "read more"}
-                      </button>
-                    )}
+                    <div className="entry-scroll-rod bottom" />
                   </div>
-
-                  {/* Comments section (renders inline when expanded) */}
-                </div>
+                </Link>
               );
             })}
           </div>

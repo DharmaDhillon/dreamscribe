@@ -36,14 +36,32 @@ export default function RootLayout({
         </main>
         <footer className="relative z-10 text-center py-12">
           <div
-            className="font-pinyon text-[2.5rem] text-amber opacity-30 mb-1"
+            className="font-pinyon text-[2.5rem] text-amber opacity-40 mb-1"
           >
             DreamScribe
           </div>
-          <p className="font-fell italic text-[0.65rem] tracking-[0.15em] text-parchment-dark opacity-20">
-            speak freely &middot; your neurons remember &middot; dream &amp;
-            daily journal &middot; TRIBE v2 neural analysis &middot; Mnemo
-            memory layer
+          <p className="font-fell italic text-[0.7rem] tracking-[0.15em] text-parchment-dark opacity-50 mb-3">
+            speak freely &middot; your neurons remember &middot; powered by
+            TRIBE v2 + Claude
+          </p>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <a
+              href="/privacy"
+              className="font-fell italic text-[0.7rem] tracking-[0.1em] text-parchment-dark opacity-70 hover:opacity-100 hover:text-amber transition-colors no-underline"
+            >
+              Privacy Policy
+            </a>
+            <span className="text-parchment-dark opacity-30">·</span>
+            <a
+              href="/terms"
+              className="font-fell italic text-[0.7rem] tracking-[0.1em] text-parchment-dark opacity-70 hover:opacity-100 hover:text-amber transition-colors no-underline"
+            >
+              Terms of Service
+            </a>
+          </div>
+          <p className="font-fell italic text-[0.6rem] tracking-[0.1em] text-parchment-dark opacity-40">
+            &copy; {new Date().getFullYear()} Dharma Universal Inc. &middot; All
+            rights reserved
           </p>
         </footer>
       </body>

@@ -58,10 +58,10 @@ export default function Nav() {
     <li key={href}>
       <Link
         href={href}
-        className={`no-underline font-fell text-xs tracking-[0.15em] uppercase transition-all duration-300 relative ${
+        className={`no-underline font-fell text-sm tracking-[0.15em] uppercase transition-all duration-300 relative ${
           isActive(href)
-            ? "text-amber-pale opacity-90"
-            : "text-parchment-dark opacity-50 hover:opacity-90 hover:text-amber-pale"
+            ? "text-amber-bright opacity-100"
+            : "text-parchment opacity-85 hover:opacity-100 hover:text-amber-pale"
         }`}
       >
         {label}
@@ -96,26 +96,30 @@ export default function Nav() {
         {isLoggedIn ? (
           <>
             {navLink("/feed", "The Bonfire")}
-            {navLink("/journal", "Speak")}
             {navLink("/patterns", "Patterns")}
             {navLink("/messages", "Messages")}
             {navLink("/notifications", "Alerts", unreadCount)}
             <li>
               <Link
                 href={`/profile/${username || "me"}`}
-                className={`no-underline flex items-center gap-2 transition-all duration-300 ${
+                className={`no-underline flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
                   isActive("/profile")
-                    ? "opacity-90"
-                    : "opacity-50 hover:opacity-90"
+                    ? "opacity-100"
+                    : "opacity-90 hover:opacity-100"
                 }`}
               >
                 <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-pinyon text-[rgba(255,220,180,0.8)] overflow-hidden"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-base font-pinyon text-amber-pale overflow-hidden"
                   style={{
                     background: avatarUrl
                       ? "transparent"
-                      : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.4), rgba(61,32,16,0.6))",
-                    border: "1px solid rgba(201,124,42,0.3)",
+                      : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.7), rgba(61,32,16,0.8))",
+                    border: isActive("/profile")
+                      ? "2px solid #e8a84a"
+                      : "2px solid rgba(201,124,42,0.6)",
+                    boxShadow: isActive("/profile")
+                      ? "0 0 12px rgba(232,168,74,0.5)"
+                      : "0 0 8px rgba(201,124,42,0.3)",
                   }}
                 >
                   {avatarUrl ? (
@@ -130,16 +134,15 @@ export default function Nav() {
             <li>
               <button
                 onClick={handleLogout}
-                className="text-parchment-dark font-fell text-[0.6rem] tracking-[0.15em] uppercase opacity-25 hover:opacity-60 transition-all duration-300 bg-transparent border-none"
+                className="text-parchment font-fell text-sm tracking-[0.15em] uppercase opacity-85 hover:opacity-100 hover:text-amber-pale transition-all duration-300 bg-transparent border-none"
                 style={{ cursor: "none" }}
               >
-                Out
+                Logout
               </button>
             </li>
           </>
         ) : (
           <>
-            {navLink("/feed", "Explore")}
             <li>
               <Link
                 href="/login"

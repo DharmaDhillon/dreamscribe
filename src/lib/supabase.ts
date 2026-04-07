@@ -283,6 +283,26 @@ export interface Database {
         };
         Relationships: [];
       };
+      terms_acknowledgments: {
+        Row: {
+          id: string;
+          user_id: string;
+          terms_version: string;
+          privacy_version: string;
+          acknowledged_at: string;
+          user_agent: string | null;
+          context: string | null;
+        };
+        Insert: {
+          user_id: string;
+          terms_version: string;
+          privacy_version: string;
+          user_agent?: string | null;
+          context?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       mnemo_flags: {
         Row: {
           id: string;

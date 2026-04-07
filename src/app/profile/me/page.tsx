@@ -110,7 +110,9 @@ export default function MyProfilePage() {
     }).eq("id", profile.id);
     setSaving(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => {
+      router.push(`/profile/${profile.username}`);
+    }, 800);
   };
 
   const togglePublic = async (entryId: string, currentPublic: boolean) => {

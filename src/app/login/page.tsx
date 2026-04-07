@@ -59,15 +59,11 @@ function LoginForm() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-parchment-aged to-transparent opacity-50" />
               </div>
               <h1
-                className="font-pinyon text-[3.5rem] text-amber-pale mb-3"
-                style={{
-                  textShadow:
-                    "0 0 20px rgba(232,168,74,0.4), 0 0 40px rgba(201,124,42,0.2)",
-                }}
+                className="font-pinyon text-[3.5rem] text-ink-sepia mb-3"
               >
                 DreamScribe
               </h1>
-              <p className="font-cormorant italic text-lg text-ink-sepia opacity-60">
+              <p className="font-cormorant italic text-xl text-ink-sepia">
                 Welcome back, Dreamer
               </p>
             </div>
@@ -75,7 +71,7 @@ function LoginForm() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
               <div className="mb-6">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-2">
                   Email
                 </label>
                 <input
@@ -83,14 +79,14 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.3)] rounded-none px-4 py-3 font-fell text-ink-sepia text-sm outline-none focus:border-amber transition-colors placeholder:text-parchment-aged placeholder:opacity-50"
+                  className="w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.4)] rounded-none px-4 py-3 font-fell text-ink-sepia text-base outline-none focus:border-amber transition-colors placeholder:text-ink-sepia placeholder:opacity-40"
                   placeholder="your.name@email.com"
                   style={{ cursor: "none" }}
                 />
               </div>
 
               <div className="mb-8">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-2">
                   Password
                 </label>
                 <input
@@ -98,7 +94,7 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.3)] rounded-none px-4 py-3 font-fell text-ink-sepia text-sm outline-none focus:border-amber transition-colors placeholder:text-parchment-aged placeholder:opacity-50"
+                  className="w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.4)] rounded-none px-4 py-3 font-fell text-ink-sepia text-base outline-none focus:border-amber transition-colors placeholder:text-ink-sepia placeholder:opacity-40"
                   placeholder="••••••••"
                   style={{ cursor: "none" }}
                 />
@@ -132,7 +128,7 @@ function LoginForm() {
               <div>
                 <Link
                   href="/signup"
-                  className="font-cormorant italic text-sm text-ink-sepia opacity-50 hover:opacity-80 transition-opacity"
+                  className="font-cormorant italic text-base text-ink-sepia hover:text-amber transition-colors"
                   style={{ cursor: "none" }}
                 >
                   New to DreamScribe? Begin your first scroll &rarr;
@@ -141,7 +137,7 @@ function LoginForm() {
               <div>
                 <Link
                   href="/therapist-login"
-                  className="font-fell italic text-[0.65rem] text-ink-sepia opacity-35 hover:opacity-60 tracking-[0.1em] transition-opacity"
+                  className="font-fell italic text-[0.75rem] text-ink-sepia opacity-70 hover:opacity-100 tracking-[0.1em] transition-opacity"
                   style={{ cursor: "none" }}
                 >
                   I am a Therapist or Counselor &rarr;

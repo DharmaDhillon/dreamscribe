@@ -7,6 +7,7 @@ import ScrollContainer from "@/components/ScrollContainer";
 import EntryCard from "@/components/EntryCard";
 import FollowButton from "@/components/FollowButton";
 import StarButton from "@/components/StarButton";
+import JournalRecorder from "@/components/JournalRecorder";
 import type { Database } from "@/lib/supabase";
 
 type User = Database["public"]["Tables"]["users"]["Row"];
@@ -63,6 +64,8 @@ export default function ProfilePage() {
       if (user.id !== profileData.id) {
         entryQuery = entryQuery.eq("is_public", true);
       }
+      // Always exclude entries with no transcript (failed/empty recordings)
+      entryQuery = entryQuery.not("transcript", "is", null).neq("transcript", "");
 
       const { data: entryData } = await entryQuery;
       setEntries(entryData || []);
@@ -101,6 +104,16 @@ export default function ProfilePage() {
       setStarredIds(new Set((stars || []).map((s) => s.entry_id)));
 
       setLoading(false);
+
+      // Scroll to entry if hash is present
+      setTimeout(() => {
+        if (typeof window !== "undefined" && window.location.hash) {
+          const el = document.getElementById(window.location.hash.slice(1));
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      }, 300);
     }
 
     load();
@@ -159,30 +172,30 @@ export default function ProfilePage() {
               >
                 {profile.display_name || profile.username}
               </h1>
-              <p className="font-fell italic text-[0.7rem] text-ink-sepia opacity-40 tracking-[0.1em] mb-4">
+              <p className="font-fell italic text-[0.95rem] text-ink-sepia tracking-[0.1em] mb-5">
                 @{profile.username} · {profile.avatar_archetype || "The Seeker"}
               </p>
 
               {/* Bio */}
               {profile.bio && (
-                <p className="font-cormorant italic text-sm text-ink-sepia opacity-60 max-w-sm mx-auto mb-6 leading-relaxed">
+                <p className="font-cormorant italic text-base text-ink-sepia max-w-sm mx-auto mb-6 leading-relaxed">
                   {profile.bio}
                 </p>
               )}
 
               {/* Stats */}
-              <div className="flex justify-center gap-8 mb-6">
+              <div className="flex justify-center gap-10 mb-6">
                 <div className="text-center">
-                  <div className="font-cormorant text-lg text-ink-sepia opacity-70">{entries.length}</div>
-                  <div className="font-fell italic text-[0.6rem] text-ink-sepia opacity-35 tracking-[0.1em]">scrolls</div>
+                  <div className="font-cormorant text-3xl text-ink-sepia">{entries.length}</div>
+                  <div className="font-fell italic text-[0.8rem] text-ink-sepia opacity-80 tracking-[0.1em] mt-1">scrolls</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-cormorant text-lg text-ink-sepia opacity-70">{followerCount}</div>
-                  <div className="font-fell italic text-[0.6rem] text-ink-sepia opacity-35 tracking-[0.1em]">followers</div>
+                  <div className="font-cormorant text-3xl text-ink-sepia">{followerCount}</div>
+                  <div className="font-fell italic text-[0.8rem] text-ink-sepia opacity-80 tracking-[0.1em] mt-1">followers</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-cormorant text-lg text-ink-sepia opacity-70">{followingCount}</div>
-                  <div className="font-fell italic text-[0.6rem] text-ink-sepia opacity-35 tracking-[0.1em]">following</div>
+                  <div className="font-cormorant text-3xl text-ink-sepia">{followingCount}</div>
+                  <div className="font-fell italic text-[0.8rem] text-ink-sepia opacity-80 tracking-[0.1em] mt-1">following</div>
                 </div>
               </div>
 
@@ -197,7 +210,7 @@ export default function ProfilePage() {
               {isOwnProfile && (
                 <a
                   href="/profile/me"
-                  className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 hover:opacity-80 transition-opacity tracking-[0.1em]"
+                  className="font-fell italic text-[0.85rem] text-ink-sepia hover:text-amber transition-colors tracking-[0.1em]"
                   style={{ cursor: "none" }}
                 >
                   Edit profile &rarr;
@@ -207,6 +220,16 @@ export default function ProfilePage() {
           </ScrollContainer>
         </div>
       </div>
+
+      {/* Journal Recorder — only on own profile */}
+      {isOwnProfile && currentUserId && (
+        <div className="w-[min(720px,98vw)] mx-auto mb-10">
+          <JournalRecorder
+            userId={currentUserId}
+            onEntrySaved={(entry) => setEntries((prev) => [entry, ...prev])}
+          />
+        </div>
+      )}
 
       {/* Public entries */}
       {entries.length > 0 && (
@@ -223,8 +246,8 @@ export default function ProfilePage() {
           </div>
 
           {entries.map((entry) => (
+            <div key={entry.id} id={`entry-${entry.id}`} className="scroll-mt-32">
             <EntryCard
-              key={entry.id}
               dateLabel={`${entry.entry_type === "dream" ? "🌙 Dream" : "☀️ Daily"} · ${new Date(entry.created_at).toLocaleDateString()}`}
               moodLabel={entry.mood_label || "shared"}
               excerpt={entry.transcript ? `"${entry.transcript.substring(0, 200)}${entry.transcript.length > 200 ? "..." : ""}"` : `Audio · ${entry.duration_seconds || 0}s`}
@@ -245,6 +268,7 @@ export default function ProfilePage() {
                 ) : `✦ ${entry.star_count} stars`
               }
             />
+            </div>
           ))}
         </div>
       )}

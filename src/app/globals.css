@@ -38,15 +38,98 @@ body {
 
 /* ── CURSOR ── */
 .cursor-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--amber-bright);
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   position: fixed;
   pointer-events: none;
+  z-index: 10000;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #d4ecff 0%,
+    #6ba8ff 30%,
+    #2a64d4 60%,
+    #0a3a8f 100%
+  );
+  box-shadow:
+    0 0 8px #6ba8ff,
+    0 0 16px #2a64d4,
+    0 0 24px rgba(42, 100, 212, 0.6),
+    0 0 36px rgba(10, 58, 143, 0.4);
+  animation: cursor-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cursor-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 8px #6ba8ff,
+      0 0 16px #2a64d4,
+      0 0 24px rgba(42, 100, 212, 0.6),
+      0 0 36px rgba(10, 58, 143, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 12px #6ba8ff,
+      0 0 22px #2a64d4,
+      0 0 32px rgba(42, 100, 212, 0.7),
+      0 0 48px rgba(10, 58, 143, 0.5);
+  }
+}
+
+.cursor-halo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 0 10px var(--amber);
-  transition: transform 0.1s;
+  background: radial-gradient(
+    circle at center,
+    rgba(140, 190, 255, 0.25) 0%,
+    rgba(74, 130, 230, 0.14) 25%,
+    rgba(42, 100, 212, 0.06) 50%,
+    transparent 75%
+  );
+  mix-blend-mode: screen;
+  filter: blur(12px);
+  transition: width 0.3s ease, height 0.3s ease;
+  will-change: transform;
+}
+
+.cursor-dot {
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+/* Spotlight — vignette that darkens everything except around the cursor */
+.cursor-spotlight {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  --cx: 50%;
+  --cy: 50%;
+  background: radial-gradient(
+    circle 600px at var(--cx) var(--cy),
+    transparent 0%,
+    transparent 30%,
+    rgba(5, 3, 2, 0.2) 60%,
+    rgba(5, 3, 2, 0.55) 100%
+  );
+  transition: background 0.4s ease;
+}
+
+.cursor-spotlight[data-active="true"] {
+  background: radial-gradient(
+    circle 700px at var(--cx) var(--cy),
+    rgba(140, 190, 255, 0.04) 0%,
+    transparent 35%,
+    rgba(5, 3, 2, 0.15) 65%,
+    rgba(5, 3, 2, 0.55) 100%
+  );
 }
 
 .cursor-feather {
@@ -421,6 +504,57 @@ body {
   }
 }
 
+/* ── SCROLL UNROLL ── */
+@keyframes scroll-unroll {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    transform: scaleY(0.02);
+  }
+  20% {
+    opacity: 0.6;
+  }
+  100% {
+    max-height: 2000px;
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes scroll-content-fade {
+  0%,
+  60% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-unroll {
+  transform-origin: top center;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: scaleY(0.02);
+  will-change: max-height, opacity, transform;
+}
+
+.scroll-unroll.in-view {
+  animation: scroll-unroll 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.scroll-unroll-content {
+  opacity: 0;
+}
+
+.scroll-unroll.in-view .scroll-unroll-content {
+  animation: scroll-content-fade 3s ease forwards;
+  animation-delay: 0.6s;
+}
+
 /* ── ANIMATIONS ── */
 @keyframes ember-in {
   from {
@@ -438,21 +572,29 @@ body {
 /* ── SCROLL COMPONENTS ── */
 .scroll-rod {
   position: relative;
-  height: 28px;
+  height: 44px;
   background: linear-gradient(
     to bottom,
-    #3d2010 0%,
-    #6b3820 20%,
-    #8b5030 40%,
-    #7a4228 60%,
-    #5a2e18 80%,
-    #3d2010 100%
+    #2a1408 0%,
+    #4d2410 8%,
+    #7a4228 22%,
+    #a85f30 40%,
+    #c97c2a 50%,
+    #a85f30 60%,
+    #7a4228 78%,
+    #4d2410 92%,
+    #2a1408 100%
   );
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6),
-    inset 0 2px 4px rgba(255, 180, 80, 0.15),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 22px;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.7),
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 3px 6px rgba(255, 200, 100, 0.25),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.5),
+    inset 4px 0 8px rgba(0, 0, 0, 0.3),
+    inset -4px 0 8px rgba(0, 0, 0, 0.3);
   z-index: 2;
+  margin: 0 -8px;
 }
 
 .scroll-rod::before,
@@ -461,28 +603,35 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  width: 38px;
+  height: 38px;
   background: radial-gradient(
-    circle at 35% 35%,
-    #c97c2a,
-    #8b5030,
-    #3d2010
+    circle at 32% 32%,
+    #ffd87a 0%,
+    #e8a84a 18%,
+    #c97c2a 38%,
+    #8b5030 65%,
+    #3d2010 100%
   );
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 3px rgba(255, 200, 100, 0.2);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(201, 124, 42, 0.4),
+    inset 0 2px 5px rgba(255, 220, 140, 0.5),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.4),
+    inset -3px 0 5px rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(60, 30, 12, 0.6);
 }
 
 .scroll-rod::before {
-  left: 8px;
+  left: -4px;
 }
 .scroll-rod::after {
-  right: 8px;
+  right: -4px;
 }
 
 .scroll-rod.bottom {
-  margin-top: -4px;
+  margin-top: -8px;
 }
 
 .scroll-body {

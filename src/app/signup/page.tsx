@@ -15,12 +15,14 @@ const archetypes = [
   { name: "The Architect", emoji: "🏛️" },
 ];
 
+import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal";
+
 export default function SignupPage() {
   const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [archetype, setArchetype] = useState("The Seeker");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -28,6 +30,12 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!acceptedTerms) {
+      setError("You must accept the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -52,7 +60,7 @@ export default function SignupPage() {
       options: {
         data: {
           username: username.toLowerCase(),
-          display_name: displayName || username,
+          display_name: username,
           avatar_archetype: archetype,
         },
       },
@@ -76,7 +84,7 @@ export default function SignupPage() {
       id: authData.user.id,
       email,
       username: username.toLowerCase(),
-      display_name: displayName || username,
+      display_name: username,
       avatar_archetype: archetype,
       role: "user",
       is_therapist_verified: false,
@@ -87,12 +95,26 @@ export default function SignupPage() {
       console.warn("Profile upsert warning:", profileError.message);
     }
 
+    // Record terms acknowledgment for legal audit trail
+    try {
+      await supabase.from("terms_acknowledgments").insert({
+        user_id: authData.user.id,
+        terms_version: TERMS_VERSION,
+        privacy_version: PRIVACY_VERSION,
+        user_agent:
+          typeof window !== "undefined" ? window.navigator.userAgent : null,
+        context: "signup",
+      });
+    } catch (ackErr) {
+      console.warn("Terms acknowledgment failed to record:", ackErr);
+    }
+
     router.push("/feed");
     router.refresh();
   };
 
   const inputClass =
-    "w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.3)] rounded-none px-4 py-3 font-fell text-ink-sepia text-sm outline-none focus:border-amber transition-colors placeholder:text-parchment-aged placeholder:opacity-50";
+    "w-full bg-[#e8d8a8] border border-[rgba(139,100,40,0.4)] rounded-none px-4 py-3 font-fell text-ink-sepia text-base outline-none focus:border-amber transition-colors placeholder:text-ink-sepia placeholder:opacity-40";
 
   return (
     <div className="pt-[130px] w-full flex flex-col items-center">
@@ -109,15 +131,11 @@ export default function SignupPage() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-parchment-aged to-transparent opacity-50" />
               </div>
               <h1
-                className="font-pinyon text-[3rem] text-amber-pale mb-3"
-                style={{
-                  textShadow:
-                    "0 0 20px rgba(232,168,74,0.4), 0 0 40px rgba(201,124,42,0.2)",
-                }}
+                className="font-pinyon text-[3rem] text-ink-sepia mb-3"
               >
                 Begin Your First Scroll
               </h1>
-              <p className="font-cormorant italic text-base text-ink-sepia opacity-50">
+              <p className="font-cormorant italic text-lg text-ink-sepia">
                 Every journal begins with a single flame
               </p>
             </div>
@@ -125,7 +143,7 @@ export default function SignupPage() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
               <div className="mb-5">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-2">
                   Username
                 </label>
                 <input
@@ -142,21 +160,7 @@ export default function SignupPage() {
               </div>
 
               <div className="mb-5">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
-                  Display Name
-                </label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className={inputClass}
-                  placeholder="Dharma D."
-                  style={{ cursor: "none" }}
-                />
-              </div>
-
-              <div className="mb-5">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-2">
                   Email
                 </label>
                 <input
@@ -171,7 +175,7 @@ export default function SignupPage() {
               </div>
 
               <div className="mb-6">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-2">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-2">
                   Password
                 </label>
                 <input
@@ -188,7 +192,7 @@ export default function SignupPage() {
 
               {/* Archetype selector */}
               <div className="mb-8">
-                <label className="font-fell italic text-[0.7rem] text-ink-sepia opacity-50 tracking-[0.1em] block mb-3">
+                <label className="font-fell italic text-[0.85rem] text-ink-sepia tracking-[0.1em] block mb-3">
                   Choose Your Archetype
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -205,12 +209,59 @@ export default function SignupPage() {
                       style={{ cursor: "none" }}
                     >
                       <div className="text-xl mb-1">{a.emoji}</div>
-                      <div className="font-fell italic text-[0.6rem] text-ink-sepia opacity-60 tracking-[0.05em]">
+                      <div className="font-fell italic text-[0.7rem] text-ink-sepia tracking-[0.05em]">
                         {a.name}
                       </div>
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Terms acknowledgment */}
+              <div
+                className="mb-6 p-4 border"
+                style={{
+                  background: "rgba(44,24,16,0.06)",
+                  borderColor: "rgba(139,100,40,0.35)",
+                }}
+              >
+                <label
+                  className="flex items-start gap-3"
+                  style={{ cursor: "none" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    required
+                    className="mt-1 w-4 h-4 shrink-0 accent-amber"
+                    style={{ cursor: "none" }}
+                  />
+                  <span className="font-cormorant italic text-[0.9rem] text-ink-sepia leading-[1.6]">
+                    I am 18 or older. I have read and agree to the{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="underline hover:text-amber"
+                      style={{ cursor: "none" }}
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      className="underline hover:text-amber"
+                      style={{ cursor: "none" }}
+                    >
+                      Privacy Policy
+                    </Link>
+                    . I understand my voice recordings will be processed by AI
+                    (Whisper, TRIBE v2, Claude, Mnemo) to generate transcripts,
+                    brain activation scores, and personalized insights.
+                    DreamScribe is not a medical or mental health service.
+                  </span>
+                </label>
               </div>
 
               {error && (
@@ -221,7 +272,7 @@ export default function SignupPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !acceptedTerms}
                 className="w-full py-4 rounded-sm font-pinyon text-xl text-[rgba(255,220,180,0.9)] transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
                 style={{
                   background:
@@ -240,7 +291,7 @@ export default function SignupPage() {
             <div className="text-center mt-6">
               <Link
                 href="/login"
-                className="font-cormorant italic text-sm text-ink-sepia opacity-50 hover:opacity-80 transition-opacity"
+                className="font-cormorant italic text-base text-ink-sepia hover:text-amber transition-colors"
                 style={{ cursor: "none" }}
               >
                 Already have a scroll? Return to the scriptorium &rarr;
