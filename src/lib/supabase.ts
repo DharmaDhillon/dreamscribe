@@ -17,7 +17,8 @@ export type NotificationType =
   | "follow_approved"
   | "new_star"
   | "new_message"
-  | "therapist_alert";
+  | "therapist_alert"
+  | "new_comment";
 export type FlagSeverity = "low" | "medium" | "high";
 
 export interface Database {

@@ -133,14 +133,14 @@ export default function Comments({
       setCommentCount((c) => c + 1);
       setNewComment("");
 
-      // Notify entry owner
+      // Notify entry owner that someone left a comment
       if (entryOwnerId !== currentUserId) {
         await supabase.from("notifications").insert({
           user_id: entryOwnerId,
-          type: "new_star" as const, // reusing type for now
+          type: "new_comment" as const,
           from_user_id: currentUserId,
           entry_id: entryId,
-          message_text: "commented on your entry",
+          message_text: "commented on your scroll",
         });
       }
     }

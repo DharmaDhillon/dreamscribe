@@ -110,6 +110,7 @@ export default function NotificationsPage() {
     follow_request: "📜",
     follow_approved: "✦",
     new_star: "★",
+    new_comment: "💬",
     new_message: "✉",
     therapist_alert: "🔔",
   };
