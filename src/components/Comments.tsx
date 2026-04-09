@@ -155,27 +155,43 @@ export default function Comments({
   };
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 w-full">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="font-fell italic text-[0.8rem] text-ink-sepia opacity-80 hover:opacity-100 transition-opacity bg-transparent border-none tracking-[0.05em]"
+        className="font-fell italic text-[1rem] text-ink-sepia hover:text-amber transition-colors bg-transparent border-none tracking-[0.05em] flex items-center gap-2"
         style={{ cursor: "none" }}
       >
-        💬 {commentCount} {commentCount === 1 ? "comment" : "comments"}
+        <span className="text-lg">💬</span>
+        <span>
+          {commentCount} {commentCount === 1 ? "comment" : "comments"}
+        </span>
+        <span className="font-fell text-[0.7rem] opacity-60">
+          {expanded ? "▲" : "▼"}
+        </span>
       </button>
 
       {/* Expanded comments */}
       {expanded && (
         <div
-          className="mt-3 pt-3"
-          style={{ borderTop: "1px solid rgba(139,100,40,0.1)" }}
+          className="mt-4 pt-4 px-4 pb-4"
+          style={{
+            borderTop: "1px solid rgba(139,100,40,0.3)",
+            background: "rgba(44,24,16,0.05)",
+            borderRadius: 0,
+          }}
         >
           {/* Comment list */}
-          {comments.length > 0 && (
-            <div className="space-y-3 mb-4">
+          {comments.length > 0 ? (
+            <div className="space-y-4 mb-5">
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2.5">
+                <div
+                  key={comment.id}
+                  className="flex gap-3 pb-3"
+                  style={{
+                    borderBottom: "1px solid rgba(139,100,40,0.15)",
+                  }}
+                >
                   {/* Avatar */}
                   <Link
                     href={`/profile/${comment.user?.username || ""}`}
@@ -183,12 +199,12 @@ export default function Comments({
                     style={{ cursor: "none" }}
                   >
                     <span
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs overflow-hidden"
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-base overflow-hidden"
                       style={{
                         background: comment.user?.avatar_url
                           ? "transparent"
-                          : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.25), rgba(61,32,16,0.5))",
-                        border: "1px solid rgba(201,124,42,0.2)",
+                          : "radial-gradient(circle at 35% 35%, rgba(201,124,42,0.5), rgba(61,32,16,0.7))",
+                        border: "2px solid rgba(201,124,42,0.5)",
                       }}
                     >
                       {comment.user?.avatar_url ? (
@@ -206,42 +222,46 @@ export default function Comments({
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 mb-1">
                       <Link
                         href={`/profile/${comment.user?.username || ""}`}
-                        className="font-cormorant italic text-[0.75rem] text-ink-sepia opacity-85 hover:opacity-90 no-underline transition-opacity"
+                        className="font-cormorant italic text-[1rem] text-ink-sepia hover:text-amber no-underline transition-colors"
                         style={{ cursor: "none" }}
                       >
                         {comment.user?.display_name ||
                           comment.user?.username ||
                           "Anonymous"}
                       </Link>
-                      <span className="font-fell italic text-[0.45rem] text-ink-sepia opacity-25">
+                      <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-70">
                         {timeAgo(comment.created_at)}
                       </span>
                       {/* Delete button — only for comment author */}
                       {currentUserId === comment.user_id && (
                         <button
                           onClick={() => handleDelete(comment.id)}
-                          className="font-fell text-[0.5rem] text-ink-sepia opacity-20 hover:opacity-50 transition-opacity bg-transparent border-none ml-auto"
+                          className="font-fell text-[0.85rem] text-ink-sepia opacity-50 hover:opacity-100 hover:text-[#8b1a1a] transition-all bg-transparent border-none ml-auto"
                           style={{ cursor: "none" }}
                         >
                           ✕
                         </button>
                       )}
                     </div>
-                    <p className="font-cormorant italic text-[0.82rem] leading-[1.5] text-ink-sepia opacity-85">
+                    <p className="font-cormorant italic text-[1rem] leading-[1.6] text-ink-sepia">
                       {comment.content}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="font-cormorant italic text-[0.95rem] text-ink-sepia opacity-70 text-center mb-5">
+              No comments yet. Be the first to leave a thought.
+            </p>
           )}
 
           {/* Write comment */}
           {currentUserId ? (
-            <div className="flex gap-2 items-end">
+            <div className="flex gap-3 items-end">
               <input
                 type="text"
                 value={newComment}
@@ -253,21 +273,29 @@ export default function Comments({
                   }
                 }}
                 placeholder="Leave a thought..."
-                className="flex-1 bg-transparent border-b border-[rgba(139,100,40,0.15)] px-1 py-1.5 font-cormorant italic text-[0.82rem] text-ink-sepia opacity-85 outline-none focus:border-[rgba(201,124,42,0.4)] transition-colors placeholder:text-ink-sepia placeholder:opacity-25"
+                className="flex-1 bg-[#e8d8a8] border border-[rgba(139,100,40,0.4)] px-4 py-3 font-cormorant italic text-[1rem] text-ink-sepia outline-none focus:border-amber transition-colors placeholder:text-ink-sepia placeholder:opacity-50"
                 style={{ cursor: "none" }}
               />
               <button
                 onClick={handleSubmit}
                 disabled={!newComment.trim() || sending}
-                className="font-fell italic text-[0.6rem] text-amber opacity-50 hover:opacity-80 transition-opacity bg-transparent border-none disabled:opacity-20 tracking-[0.05em] pb-1.5"
-                style={{ cursor: "none" }}
+                className="font-pinyon text-base px-5 py-2.5 transition-all duration-300 hover:scale-105 disabled:opacity-40"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 35%, #c0302a, #8b1a1a, #5a0f0f)",
+                  boxShadow:
+                    "0 2px 8px rgba(0,0,0,0.4), 0 0 12px rgba(139,26,26,0.2)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                  color: "rgba(255,220,180,0.95)",
+                  cursor: "none",
+                }}
               >
-                {sending ? "..." : "send"}
+                {sending ? "..." : "Send"}
               </button>
             </div>
           ) : (
-            <p className="font-cormorant italic text-[0.75rem] text-ink-sepia opacity-30">
-              Log in to comment
+            <p className="font-cormorant italic text-[0.95rem] text-ink-sepia opacity-70 text-center">
+              Log in to leave a comment
             </p>
           )}
         </div>
