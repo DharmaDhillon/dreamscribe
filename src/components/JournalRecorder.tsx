@@ -54,6 +54,7 @@ export default function JournalRecorder({ userId, onEntrySaved }: JournalRecorde
   const animFrameRef = useRef<number>(0);
   const mounted = useRef(true);
   const durationRef = useRef(0);
+  const savingRef = useRef(false); // prevents duplicate saves
 
   useEffect(() => {
     durationRef.current = elapsedSeconds;
@@ -97,20 +98,24 @@ export default function JournalRecorder({ userId, onEntrySaved }: JournalRecorde
 
   // Auto-stop at max length
   useEffect(() => {
-    if (isRecording && elapsedSeconds >= MAX_RECORDING_SECONDS) {
+    if (isRecording && elapsedSeconds >= MAX_RECORDING_SECONDS && !savingRef.current) {
       (async () => {
+        if (savingRef.current) return;
         const blob = await stopRecording();
-        if (blob) await handleSaveAndAnalyze(blob);
+        if (blob && !savingRef.current) await handleSaveAndAnalyze(blob);
       })();
     }
   }, [isRecording, elapsedSeconds, stopRecording]);
 
   const handleToggleRecording = useCallback(async () => {
+    if (savingRef.current) return; // hard guard against double clicks during processing
+
     if (!isRecording) {
       setShowInsight(false);
       setInsightText("");
       setCursorVisible(true);
       setSavingError("");
+      setLastEntry(null);
       await startRecording();
     } else {
       const recordedDuration = durationRef.current;
@@ -127,59 +132,67 @@ export default function JournalRecorder({ userId, onEntrySaved }: JournalRecorde
   }, [isRecording, startRecording, stopRecording]);
 
   const handleSaveAndAnalyze = async (blob: Blob) => {
-    setProcessing(true);
-    setProcessingSteps(Array(6).fill(false));
-    setProcessingSteps((p) => { const n = [...p]; n[0] = true; return n; });
-
-    const supabase = createClient();
-    const timestamp = Date.now();
-    const ext = blob.type.includes("webm") ? "webm" : "mp4";
-    const filePath = `${userId}/${entryType}/${timestamp}.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("audio-entries")
-      .upload(filePath, blob, { contentType: blob.type });
-
-    if (uploadError) {
-      setSavingError("Failed to upload audio: " + uploadError.message);
-      setProcessing(false);
+    // Hard lock — prevents any duplicate save from race conditions or double-fires
+    if (savingRef.current) {
+      console.warn("Save already in progress — skipping duplicate");
       return;
     }
-
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("audio-entries")
-      .createSignedUrl(filePath, 3600);
-
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      setSavingError("Failed to generate audio URL: " + (signedUrlError?.message || "Unknown error"));
-      setProcessing(false);
-      return;
-    }
-
-    const audioUrl = signedUrlData.signedUrl;
-    setProcessingSteps((p) => { const n = [...p]; n[1] = true; return n; });
-
-    const { data: newEntry, error: insertError } = await supabase
-      .from("entries")
-      .insert({
-        user_id: userId,
-        entry_type: entryType,
-        audio_url: audioUrl,
-        duration_seconds: durationRef.current,
-        is_public: isPublic,
-      })
-      .select()
-      .single();
-
-    if (insertError || !newEntry) {
-      setSavingError("Failed to save entry: " + (insertError?.message || "Unknown error"));
-      setProcessing(false);
-      return;
-    }
-
-    setProcessingSteps((p) => { const n = [...p]; n[2] = true; return n; });
+    savingRef.current = true;
 
     try {
+      setProcessing(true);
+      setProcessingSteps(Array(6).fill(false));
+      setProcessingSteps((p) => { const n = [...p]; n[0] = true; return n; });
+
+      const supabase = createClient();
+      const timestamp = Date.now();
+      const ext = blob.type.includes("webm") ? "webm" : "mp4";
+      const filePath = `${userId}/${entryType}/${timestamp}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("audio-entries")
+        .upload(filePath, blob, { contentType: blob.type });
+
+      if (uploadError) {
+        setSavingError("Failed to upload audio: " + uploadError.message);
+        setProcessing(false);
+        return;
+      }
+
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("audio-entries")
+        .createSignedUrl(filePath, 3600);
+
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        setSavingError("Failed to generate audio URL: " + (signedUrlError?.message || "Unknown error"));
+        setProcessing(false);
+        return;
+      }
+
+      const audioUrl = signedUrlData.signedUrl;
+      setProcessingSteps((p) => { const n = [...p]; n[1] = true; return n; });
+
+      const { data: newEntry, error: insertError } = await supabase
+        .from("entries")
+        .insert({
+          user_id: userId,
+          entry_type: entryType,
+          audio_url: audioUrl,
+          duration_seconds: durationRef.current,
+          is_public: isPublic,
+        })
+        .select()
+        .single();
+
+      if (insertError || !newEntry) {
+        setSavingError("Failed to save entry: " + (insertError?.message || "Unknown error"));
+        setProcessing(false);
+        return;
+      }
+
+      setProcessingSteps((p) => { const n = [...p]; n[2] = true; return n; });
+
+      try {
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -251,16 +264,20 @@ export default function JournalRecorder({ userId, onEntrySaved }: JournalRecorde
         }
       };
       writeChar();
-    } catch (err) {
-      console.error("Analysis failed:", err);
-      setProcessing(false);
-      setShowInsight(true);
-      setQuillWriting(false);
-      setCursorVisible(false);
-      setInsightText("");
-      setSavingError(
-        "The flame flickered — analysis incomplete. Your entry was saved. Try again shortly."
-      );
+      } catch (err) {
+        console.error("Analysis failed:", err);
+        setProcessing(false);
+        setShowInsight(true);
+        setQuillWriting(false);
+        setCursorVisible(false);
+        setInsightText("");
+        setSavingError(
+          "The flame flickered — analysis incomplete. Your entry was saved. Try again shortly."
+        );
+      }
+    } finally {
+      // Always release the lock so future recordings work
+      savingRef.current = false;
     }
   };
 
