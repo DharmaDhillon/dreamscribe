@@ -7,6 +7,7 @@ import ScrollContainer from "@/components/ScrollContainer";
 import EntryCard from "@/components/EntryCard";
 import FollowButton from "@/components/FollowButton";
 import StarButton from "@/components/StarButton";
+import Comments from "@/components/Comments";
 import JournalRecorder from "@/components/JournalRecorder";
 import type { Database } from "@/lib/supabase";
 
@@ -263,9 +264,27 @@ export default function ProfilePage() {
               insightLabel="✦ what the flame heard"
               insightText={entry.claude_insight || ""}
               footer={
-                currentUserId ? (
-                  <StarButton entryId={entry.id} userId={currentUserId} initialStarCount={entry.star_count} initialStarred={starredIds.has(entry.id)} />
-                ) : `✦ ${entry.star_count} stars`
+                <div className="flex items-center gap-4 flex-wrap">
+                  {currentUserId ? (
+                    <StarButton
+                      entryId={entry.id}
+                      userId={currentUserId}
+                      initialStarCount={entry.star_count}
+                      initialStarred={starredIds.has(entry.id)}
+                    />
+                  ) : (
+                    <span className="font-fell italic text-[0.7rem] text-ink-sepia opacity-70">
+                      ✦ {entry.star_count} stars
+                    </span>
+                  )}
+                  {entry.is_public && (
+                    <Comments
+                      entryId={entry.id}
+                      currentUserId={currentUserId}
+                      entryOwnerId={entry.user_id}
+                    />
+                  )}
+                </div>
               }
             />
             </div>

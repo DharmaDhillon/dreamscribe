@@ -159,7 +159,7 @@ export default function Comments({
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="font-fell italic text-[0.65rem] text-parchment-dark opacity-40 hover:opacity-70 transition-opacity bg-transparent border-none tracking-[0.05em]"
+        className="font-fell italic text-[0.8rem] text-ink-sepia opacity-80 hover:opacity-100 transition-opacity bg-transparent border-none tracking-[0.05em]"
         style={{ cursor: "none" }}
       >
         💬 {commentCount} {commentCount === 1 ? "comment" : "comments"}
@@ -209,28 +209,28 @@ export default function Comments({
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/profile/${comment.user?.username || ""}`}
-                        className="font-cormorant italic text-[0.75rem] text-parchment opacity-70 hover:opacity-90 no-underline transition-opacity"
+                        className="font-cormorant italic text-[0.75rem] text-ink-sepia opacity-85 hover:opacity-90 no-underline transition-opacity"
                         style={{ cursor: "none" }}
                       >
                         {comment.user?.display_name ||
                           comment.user?.username ||
                           "Anonymous"}
                       </Link>
-                      <span className="font-fell italic text-[0.45rem] text-parchment-dark opacity-25">
+                      <span className="font-fell italic text-[0.45rem] text-ink-sepia opacity-25">
                         {timeAgo(comment.created_at)}
                       </span>
                       {/* Delete button — only for comment author */}
                       {currentUserId === comment.user_id && (
                         <button
                           onClick={() => handleDelete(comment.id)}
-                          className="font-fell text-[0.5rem] text-parchment-dark opacity-20 hover:opacity-50 transition-opacity bg-transparent border-none ml-auto"
+                          className="font-fell text-[0.5rem] text-ink-sepia opacity-20 hover:opacity-50 transition-opacity bg-transparent border-none ml-auto"
                           style={{ cursor: "none" }}
                         >
                           ✕
                         </button>
                       )}
                     </div>
-                    <p className="font-cormorant italic text-[0.82rem] leading-[1.5] text-parchment opacity-60">
+                    <p className="font-cormorant italic text-[0.82rem] leading-[1.5] text-ink-sepia opacity-85">
                       {comment.content}
                     </p>
                   </div>
@@ -253,7 +253,7 @@ export default function Comments({
                   }
                 }}
                 placeholder="Leave a thought..."
-                className="flex-1 bg-transparent border-b border-[rgba(139,100,40,0.15)] px-1 py-1.5 font-cormorant italic text-[0.82rem] text-parchment opacity-60 outline-none focus:border-[rgba(201,124,42,0.4)] transition-colors placeholder:text-parchment-dark placeholder:opacity-25"
+                className="flex-1 bg-transparent border-b border-[rgba(139,100,40,0.15)] px-1 py-1.5 font-cormorant italic text-[0.82rem] text-ink-sepia opacity-85 outline-none focus:border-[rgba(201,124,42,0.4)] transition-colors placeholder:text-ink-sepia placeholder:opacity-25"
                 style={{ cursor: "none" }}
               />
               <button
@@ -266,7 +266,7 @@ export default function Comments({
               </button>
             </div>
           ) : (
-            <p className="font-cormorant italic text-[0.75rem] text-parchment-dark opacity-30">
+            <p className="font-cormorant italic text-[0.75rem] text-ink-sepia opacity-30">
               Log in to comment
             </p>
           )}
